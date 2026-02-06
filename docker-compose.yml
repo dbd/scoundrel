@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  scoundrel:
+    build: .
+    ports:
+      - "22:22"
+    restart: unless-stopped
+    container_name: scoundrel-game

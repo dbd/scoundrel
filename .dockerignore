@@ -1,0 +1,7 @@
+scoundrel
+scoundrel-server
+.ssh/
+.git/
+.gitignore
+README.md
+*.md
