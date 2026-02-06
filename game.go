@@ -87,6 +87,7 @@ type model struct {
 	message       string
 	selectedCards map[int]bool
 	roomsCleared  int
+	showWelcome   bool
 }
 
 func newDeck() []Card {
@@ -126,6 +127,7 @@ func initialModel() model {
 		message:       "Select cards 1-4 in order (select 3 to face room or R to run)",
 		selectedCards: make(map[int]bool),
 		roomsCleared:  0,
+		showWelcome:   true,
 	}
 }
 
@@ -136,6 +138,17 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.showWelcome {
+			switch msg.String() {
+			case "enter", " ":
+				m.showWelcome = false
+				return m, nil
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			}
+			return m, nil
+		}
+
 		if m.gameOver {
 			if msg.String() == "q" || msg.String() == "ctrl+c" {
 				return m, tea.Quit
@@ -270,6 +283,10 @@ func (m model) handleCard(card Card) model {
 }
 
 func (m model) View() string {
+	if m.showWelcome {
+		return m.welcomeView()
+	}
+
 	if m.gameOver {
 		var s strings.Builder
 		s.WriteString("\n")
@@ -428,6 +445,103 @@ func (m model) View() string {
 	}
 	s.WriteString("\n")
 	s.WriteString(helpStyle.Render("  Q: Quit"))
+	s.WriteString("\n")
+
+	return s.String()
+}
+
+func (m model) welcomeView() string {
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#FFD700")).
+		Align(lipgloss.Center).
+		Padding(1, 2)
+
+	headingStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#00FFFF")).
+		Padding(0, 1)
+
+	textStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Padding(0, 2)
+
+	exampleStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#90EE90")).
+		Padding(0, 3)
+
+	promptStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#FFD700")).
+		Padding(1, 0).
+		Align(lipgloss.Center)
+
+	var s strings.Builder
+
+	s.WriteString("\n")
+	s.WriteString(titleStyle.Render("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
+	s.WriteString("\n")
+	s.WriteString(titleStyle.Render("🃏  S C O U N D R E L  🃏"))
+	s.WriteString("\n")
+	s.WriteString(titleStyle.Render("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
+	s.WriteString("\n\n")
+
+	s.WriteString(headingStyle.Render("📜 THE QUEST"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("Explore a dungeon room by room. Each room has 4 cards."))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("Clear as many rooms as you can without dying!"))
+	s.WriteString("\n\n")
+
+	s.WriteString(headingStyle.Render("🎴 THE CARDS"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("♥ Hearts (2-10): Heal you for the card value"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("♦ Diamonds (2-10): Weapons that deal damage"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("♣ Clubs & ♠ Spades (2-K, Ace): Enemies that attack you"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("(Aces are high: value 14)"))
+	s.WriteString("\n\n")
+
+	s.WriteString(headingStyle.Render("⚔️  COMBAT"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("• Without weapon: Take full enemy damage"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("• With weapon: Damage = Enemy - Weapon value"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("• Weapons DEGRADE after each use:"))
+	s.WriteString("\n")
+	s.WriteString(exampleStyle.Render("Pick up 6♦ → Can block any enemy"))
+	s.WriteString("\n")
+	s.WriteString(exampleStyle.Render("Fight 10♠ → Take 4 damage (10-6), now can only block ≤9"))
+	s.WriteString("\n")
+	s.WriteString(exampleStyle.Render("Fight J♠ (11) → Too strong! Take full 11 damage"))
+	s.WriteString("\n")
+	s.WriteString(exampleStyle.Render("Fight 8♣ → Take 2 damage (8-6), now can only block ≤7"))
+	s.WriteString("\n\n")
+
+	s.WriteString(headingStyle.Render("🎮 HOW TO PLAY"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("1. Press 1-4 to select a card (applies immediately!)"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("2. Select 3 cards to clear the room"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("3. The 4th card stays + 3 new cards appear"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("4. OR press R to run (shuffle & get 4 new cards)"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("   ⚠️  Can't run twice in a row!"))
+	s.WriteString("\n\n")
+
+	s.WriteString(headingStyle.Render("💚 STARTING STATS"))
+	s.WriteString("\n")
+	s.WriteString(textStyle.Render("HP: 20 | Weapon: None"))
+	s.WriteString("\n\n")
+
+	s.WriteString(promptStyle.Render("Press ENTER or SPACE to start your adventure!"))
+	s.WriteString("\n")
+	s.WriteString(promptStyle.Render("(Press Q to quit)"))
 	s.WriteString("\n")
 
 	return s.String()
