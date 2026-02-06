@@ -57,5 +57,17 @@ func main() {
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	return initialModel(), []tea.ProgramOption{tea.WithAltScreen()}
+	_, _, active := s.Pty()
+	if !active {
+		return initialModel(), []tea.ProgramOption{tea.WithAltScreen()}
+	}
+
+	opts := []tea.ProgramOption{
+		tea.WithAltScreen(),
+		tea.WithInput(s),
+		tea.WithOutput(s),
+	}
+	opts = append(opts, bubbletea.MakeOptions(s)...)
+
+	return initialModel(), opts
 }
