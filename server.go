@@ -11,11 +11,13 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
+	"github.com/muesli/termenv"
 )
 
 const (
@@ -62,11 +64,18 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		return initialModel(), []tea.ProgramOption{tea.WithAltScreen()}
 	}
 
+	// Force color output - tell lipgloss to use TrueColor
+	lipgloss.SetColorProfile(termenv.TrueColor)
+	renderer := bubbletea.MakeRenderer(s)
+	renderer.SetColorProfile(termenv.TrueColor)
+
 	opts := []tea.ProgramOption{
 		tea.WithAltScreen(),
 		tea.WithInput(s),
 		tea.WithOutput(s),
 	}
+	
+	// Add options that handle terminal capabilities from SSH session
 	opts = append(opts, bubbletea.MakeOptions(s)...)
 
 	return initialModel(), opts

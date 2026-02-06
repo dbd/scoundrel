@@ -71,7 +71,13 @@ sudo systemctl start scoundrel
 ### Troubleshooting
 
 **No colors showing:**
-- The updated server now properly inherits terminal capabilities from SSH clients
+- The server now forces TrueColor output for all SSH sessions
+- Rebuild and copy the latest version:
+  ```bash
+  go build -o scoundrel-server
+  sudo cp scoundrel-server /opt/scoundrel/
+  sudo systemctl restart scoundrel
+  ```
 - Make sure your SSH client supports colors (most modern terminals do)
 - Try connecting with: `TERM=xterm-256color ssh yourserver.com`
 
